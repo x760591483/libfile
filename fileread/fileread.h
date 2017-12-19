@@ -21,6 +21,21 @@ typedef struct FILEDATA
     struct FILEDATA *next;
 }filedata;
 
+
+typedef struct FILESTRUCT
+{
+    const char *filepath;
+    char *cdata;
+    filedata *fdatahead;
+}filestruct;
+
+
+filestruct* FileLoad(const char *path);
+
+int FileRead(filestruct *dat);
+
+char* FileFindOneData(filestruct *dat,const char *filename,const char *key,char *value,int *valuelen);
+
 /**
  *dat is loadFile of return 
  res is out

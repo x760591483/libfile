@@ -50,7 +50,30 @@ void trimspace(char *dat,int num)
     }
 }
 
+filestruct* FileLoad(const char *path)
+{
 
+    if(path ==NULL)
+    {
+        return NULL;
+    }
+    char *tem = (char*)loadFile(path);
+    if(tem == NULL)
+    {
+        return NULL;
+    }
+
+    filestruct *fdata =(filestruct*)malloc(sizeof(filestruct));
+    if(fdata ==NULL)
+    {
+        return NULL;
+    }
+    memset(fdata,0,sizeof(filestruct));
+
+    fdata->filepath = path;
+    fdata->cdata = tem;
+    return fdata;
+}
 
 void* loadFile(const char *path)
 {
@@ -274,9 +297,51 @@ int playFiledata(filedata *fhead,FILE *fd)
         }
         fprintf(fd,"\n");
     }
-    
+
     return 0;
 }
+
+int FileRead(filestruct *dat)
+{
+    if(dat ==NULL)
+    {
+        return -1;
+    }
+    filedata *fdat=NULL;
+
+    int ret = readFile(dat->cdata,&fdat);
+    if(ret <0)
+    {
+        return ret;
+    }
+    if(dat->fdatahead !=NULL)
+    {
+        freeFiledata(dat->fdatahead);
+    }
+    dat->fdatahead = fdat;
+    return 0;
+}
+
+
+char* FileFindOneData(filestruct *dat,const char *filename,const char *key,char *value,int *valuelen)                                                                                             
+{
+    if(dat ==NULL || filename ==NULL || key ==NULL || valuelen==NULL)
+    {   
+        *valuelen =-11;
+        return NULL;
+    }   
+    filedata *tem=getfiledata(dat->fdatahead,filename);
+    if(tem ==NULL)
+    {   
+        *valuelen = -12;
+        return NULL;
+    }   
+    return getvalue(tem,key,value,valuelen);
+
+
+}
+
+
 
 int readFile(void *dat,filedata **res)
 {
