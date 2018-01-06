@@ -79,7 +79,8 @@ int logInf(logdata *ld,char* file,int line,int type,const char *format,...)
     }
 
     char buff[1024] ={0};
-    char temchar[1024]={0};
+    char temchar[4096]={0};
+    
     int tennum =0;
     va_list ap;
     va_start(ap,format);
@@ -103,28 +104,32 @@ int logInf(logdata *ld,char* file,int line,int type,const char *format,...)
         strcat(buff," [WARN] ");
 
     }
+
     sprintf(temchar," [%s:%d] ",file,line);
     strcat(buff,temchar);
-
     memset(temchar,0,sizeof(temchar));
 
 
-    vsprintf(temchar,format,ap);
-    strcat(buff,temchar);
-    strcat(buff,"\n");
-
+    vsnprintf(temchar,sizeof(temchar),format,ap);
+   // strcat(buff,temchar);
+    // strcat(buff,"\n");
+    strcat(temchar,"\n");
     va_end(ap);
-    if( isneedcp(ld->filename,ld->maxsize)==1)
+    tennum = (int)strlen(buff) + (int)strlen(temchar);
+    if(ld->size + tennum > ld->maxsize)
+ //   if( isneedcp(ld->filename,ld->maxsize)==1)
     {
-        memset(temchar,0,sizeof(temchar));
-        sprintf(temchar,"%s_%s.log",ld->filename,tim);
+        char filetem[1024]={0};
+      //  memset(temchar,0,sizeof(temchar));
+        sprintf(filetem,"%s_%s.log",ld->filename,tim);
+        int te = strlen(filetem)-5;
+        filetem[te]='_';
+        charChange(filetem,' ','_');
+        charChange(filetem,':','_');
 
-        tennum = strlen(temchar)-5;
-        temchar[tennum]='_';
-        charChange(temchar,' ','_');
         fclose(ld->fg);
         ld->fg =NULL;
-        rename(ld->filename,temchar);
+        rename(ld->filename,filetem);
 
         ld->fg = fopen(ld->filename,"a");
         if(ld->fg == NULL)
@@ -132,9 +137,12 @@ int logInf(logdata *ld,char* file,int line,int type,const char *format,...)
             logDel(ld);
             return -2;
         }
+        ld->size =0;
 
     }
+    ld->size += tennum;
     fwrite(buff,strlen(buff),1,ld->fg);
+    fwrite(temchar,strlen(temchar),1,ld->fg);
     fflush(ld->fg);
     return 0;
 }
@@ -158,6 +166,7 @@ void charChange(char *dat,char oldC,char newC)
     }
 
 }
+/*
 int isneedcp(const char* path,int size)
 {
     if(path ==NULL || size <1024)
@@ -180,17 +189,20 @@ int isneedcp(const char* path,int size)
 
     return 0;
 }
-
-//int main(int argc, char *argv[])
-//{
-//    logdata *ld = logInit("./log.log",2);
-//    int i=0;
-//    for(;i<20;++i)
-//    {
-//        logLog(ld,LOGERR,"%d:%s",i,"xxxxxxxxxxaa");
-//        logLog(ld,LOGINF,"%d %s",199,"fadfafaf");
-//        logLog(ld,LOGWAR,"%d %s",199,"fadfaffadfadfaaf");
-//    }
-//        logDel(ld);
-//    return 0;
-//}
+*/
+/*
+int main(int argc, char *argv[])
+{
+    logdata *ld = logInit("./log.log",2);
+    int i=0;
+   for(;i<100;++i)
+    {
+        logLog(ld,LOGERR,"%d:%s",i,"xxxxxxxxxxaa");
+        logLog(ld,LOGINF,"%d %s",199,"fadfafaf");
+        logLog(ld,LOGWAR,"%d %s",199,"fadfaffadfadfaaf");
+        
+    }
+        logDel(ld);
+    return 0;
+}
+*/
